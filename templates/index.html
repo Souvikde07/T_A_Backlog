@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backlog Search</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>Application name</h1>
+
+  <input type="text" id="searchInput" placeholder="Search keyword input" />
+  <button onclick="performSearch()">Search</button>
+
+  <h2>Favorite List</h2>
+  <ul id="favorites"></ul>
+
+  <h2>Search Results</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Fav</th>
+        <th>ID</th>
+        <th>Project Name</th>
+        <th>Type</th>
+        <th>Summary</th>
+        <th>Created User</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+
+  <script>
+    const favorites = [];
+
+    function performSearch() {
+      const keyword = document.getElementById("searchInput").value;
+      fetch(`/search?keyword=${keyword}`)
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.getElementById("resultsBody");
+          tbody.innerHTML = "";
+          data.forEach((item, index) => {
+            const tr = document.createElement("tr");
+
+            const favCheckbox = document.createElement("input");
+            favCheckbox.type = "checkbox";
+            favCheckbox.onchange = () => toggleFavorite(item);
+
+            tr.innerHTML = `
+              <td></td>
+              <td>${item.id}</td>
+              <td>${item.project_name}</td>
+              <td>${item.type}</td>
+              <td>${item.content_summary}</td>
+              <td>${item.createdUser_name}</td>
+              <td>${item.created}</td>
+            `;
+            tr.cells[0].appendChild(favCheckbox);
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    function toggleFavorite(item) {
+      const index = favorites.findIndex(fav => fav.id === item.id);
+      if (index === -1) {
+        favorites.push(item);
+      } else {
+        favorites.splice(index, 1);
+      }
+      updateFavorites();
+    }
+
+    function updateFavorites() {
+      const favList = document.getElementById("favorites");
+      favList.innerHTML = "";
+      favorites.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.project_name} (${item.id})`;
+        favList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
